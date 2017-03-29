@@ -1,5 +1,5 @@
 @rem absolute path to lightroom installation
-SET LRPATH="path\to\lightroom.exe"
+SET LRPATH="path\to\lightroom.exe\lightroom.exe"
 SET CATALOGUE="name_of_your_catalogue.lrcat"
 
 @rem files to sync on NAS
@@ -18,14 +18,14 @@ SET PCSMARTPREVIEWS="path\to\working\directory\Smart Previews.lrdata"
 @rem sync only if NAS catalogue newer than on PC
 @CALL :joinpath %NASPATH% %CATALOGUE%
 SET NASCATALOGUE=%RESULT%
-@FOR %%i IN (%NASCATALOGUE%) DO SET DATE1=%%~ti
+@FOR %%i IN ("%NASCATALOGUE%") DO SET DATE1=%%~ti
 @CALL :joinpath %PCPATH% %CATALOGUE%
 SET PCCATALOGUE=%RESULT%
-@FOR %%i IN (%PCCATALOGUE%) DO SET DATE2=%%~ti
+@FOR %%i IN ("%PCCATALOGUE%") DO SET DATE2=%%~ti
 @IF "%DATE1%"=="%DATE2%" ECHO Files have same age && GOTO :END
-FOR /F %%i IN ('DIR /B /O:D %NASCATALOGUE% %PCCATALOGUE%') DO SET NEWEST=%%~fi
-ECHO Newer file is %NEWEST%
-IF %NEWEST%==%PCCATALOGUE% CHOICE /M "The catalogue on PC is newer. Do you want to overwrite?"
+FOR /F "delims=" %%i IN ('DIR /B /O:D "%NASCATALOGUE%", "%PCCATALOGUE%"') DO SET NEWEST=%%~fi
+ECHO Newer file is "%NEWEST%"
+IF "%NEWEST%"=="%PCCATALOGUE%" CHOICE /M "The catalogue on PC is newer. Do you want to overwrite?"
 IF %ERRORLEVEL%==1 GOTO :END
 IF %ERRORLEVEL%==2 GOTO :EOF
 :END
@@ -35,10 +35,10 @@ IF %ERRORLEVEL%==2 GOTO :EOF
 ROBOCOPY %NASPATH% %PCPATH% %CATALOGUE% /NFL /NDL /Z /R:1
 
 @rem copy existing smart previews
-ROBOCOPY %NASSMARTPREVIEWS% %PCSMARTPREVIEWS% /NFL /NDL /XJ /Z /FFT /E /R:1 /W:10 /XA:H
+ROBOCOPY %NASSMARTPREVIEWS% %PCSMARTPREVIEWS% /NFL /NDL /XJ /Z /FFT /R:1 /W:10 /XA:H
 
 @rem copy existing previews
-ROBOCOPY %NASPREVIEWS% %PCPREVIEWS% /NFL /NDL /XJ /Z /FFT /E /R:1 /W:10 /XA:H
+ROBOCOPY %NASPREVIEWS% %PCPREVIEWS% /NFL /NDL /XJ /Z /FFT /R:1 /W:10 /XA:H
 
 @rem working with lightroom with sync catalogue
 @CALL :joinpath %PCPATH% %CATALOGUE%
@@ -46,13 +46,13 @@ START /b /wait "" %LRPATH% %RESULT%
 
 @rem syncing folders and files from PC to storage folder on NAS after closing lightroom
 @rem copy lightroom catalogue
-ROBOCOPY %PCPATH% %NASPATH% %CATALOGUE% /NFL /NDL /Z /R:1
+ROBOCOPY %PCPATH% %NASPATH% %CATALOGUE% /NFL /NDLE /Z /R:1
 
 @rem copy existing smart previews
-ROBOCOPY %PCSMARTPREVIEWS% %NASSMARTPREVIEWS% /NFL /NDL /XJ /Z /FFT /E /R:1 /W:10 /XA:H
+ROBOCOPY %PCSMARTPREVIEWS% %NASSMARTPREVIEWS% /NFL /NDL /XJ /Z /FFT /R:1 /W:10 /XA:H
 
 @rem copy existing previews
-ROBOCOPY %PCPREVIEWS% %NASPREVIEWS% /NFL /NDL /XJ /Z /FFT /E /R:1 /W:10 /XA:H
+ROBOCOPY %PCPREVIEWS% %NASPREVIEWS% /NFL /NDL /XJ /Z /FFT /R:1 /W:10 /XA:H
 
 rem finish the file
 GOTO :EOF
