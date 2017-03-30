@@ -46,7 +46,7 @@ START /b /wait "" %LRPATH% %RESULT%
 
 @rem syncing folders and files from PC to storage folder on NAS after closing lightroom
 @rem copy lightroom catalogue
-ROBOCOPY %PCPATH% %NASPATH% %CATALOGUE% /NFL /NDLE /Z /R:1
+ROBOCOPY %PCPATH% %NASPATH% %CATALOGUE% /NFL /NDL /Z /R:1
 
 @rem copy existing smart previews
 ROBOCOPY %PCSMARTPREVIEWS% %NASSMARTPREVIEWS% /NFL /NDL /XJ /Z /FFT /R:1 /W:10 /XA:H
