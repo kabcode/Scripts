@@ -26,8 +26,14 @@ Function Main($currentPath) {
 	"The project name is ""$fullprojectpath""."
 	
 	# create project file set (CMakeLists.txt, ReadMe, License, Doxyfile
-	New-Item (Join-Path $fullprojectpath "CMakeLists.txt") -Type File
-	New-Item (Join-Path $fullprojectpath "ReadMe") -Type File
+	$cmakeListtop = New-Item (Join-Path $fullprojectpath "CMakeLists.txt") -Type File
+	## cmakeMinimumVersion
+	$cmake_config = @{"cmakeversion" = "3.1"}
+	$cmake_config.Set_Item("projectname",$projectname)
+	Populate-CMakeLists $cmakeListtop $cmake_config
+	
+	# create a ReadMe file for instructions
+	New-Item (Join-Path $fullprojectpath "ReadMe.md") -Type File
 
 	# create a LICENSE file (with at least the MIT license)
 	$licencefile = New-Item (Join-Path $fullprojectpath "LICENSE.txt") -Type File
@@ -41,19 +47,20 @@ Function Main($currentPath) {
 		Print-MITLicense $licencefile $copyrightholder
 	}
 	
-	# setup doxyfile for documentation
+	# setup doxyfile for documentation and documentation directory
 	New-Item (Join-Path $fullprojectpath "Doxyfile") -Type File
+	New-Item (Join-Path $fullprojectpath "doc") -Type directory
 	
 	# create directory structure for project
 	<#
 	New-Item (Join-Path $fullprojectpath "bin") -Type directory
-	New-Item (Join-Path $fullprojectpath "doc") -Type directory
+	New-Item (Join-Path $fullprojectpath "build") -Type directory
 	New-Item (Join-Path $fullprojectpath "src") -Type directory
 	New-Item (Join-Path $fullprojectpath "include") -Type directory
-	New-Item (Join-Path $fullprojectpath "thirdparty") -Type directory
+	New-Item (Join-Path $fullprojectpath "extern") -Type directory
 	New-Item (Join-Path $fullprojectpath "test") -Type directory
-	New-Item (Join-Path $fullprojectpath "libs") -Type directory
-	New-Item (Join-Path $fullprojectpath "data") -Type directory
+	# New-Item (Join-Path $fullprojectpath "libs") -Type directory
+	New-Item (Join-Path $fullprojectpath "shared") -Type directory
 	#>
 }
 
@@ -146,6 +153,18 @@ AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
 	
 	$licencetext | Out-File $licencefile
+}
+
+# Populate CmakeLists.txt with some base content
+Function Populate-CMakeLists($cmakeListtop, $cmake_config){
+	Add-Content $cmakeListtop "###############################################"
+	Add-Content $cmakeListtop "# TOP CMAKELISTS FOR $($cmake_config.projectname)"
+	Add-Content $cmakeListtop "###############################################"
+	Add-Content $cmakeListtop "`n# basic setup of the project cmakelists.txt"
+	Add-Content $cmakeListtop "CMAKE_MINIMUM_REQUIRED (VERSION $($cmake_config.cmakeversion))"
+	Add-Content $cmakeListtop "PROJECT ($($cmake_config.projectname))"
+	Add-Content $cmakeListtop "`n# add executable"
+	Add-Content $cmakeListtop "ADD_EXECUTABLE ($($cmake_config.projectname) """")"
 }
 
 # run the script by calling the main function
