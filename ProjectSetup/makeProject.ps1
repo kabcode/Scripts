@@ -32,6 +32,16 @@ Function Main($currentPath) {
 	$cmake_config.Set_Item("projectname",$projectname)
 	Populate-CMakeLists $cmakeListtop $cmake_config
 	
+	# create directory for source code and modules
+	New-Item (Join-Path $fullprojectpath "src") -Type directory
+	Set-Location (Join-Path $fullprojectpath "src")
+		$cmakeListSrc = New-Item (Join-Path $fullprojectpath "src" | Join-Path -ChildPath "CMakeLists.txt")
+		Add-Content $cmakeListSrc "###############################################"
+		Add-Content $cmakeListSrc "# SRC CMAKELISTS FOR $($cmake_config.projectname)"
+		Add-Content $cmakeListSrc "###############################################" 
+		Add-Content $cmakeListSrc "# All modules are going to register in this CmakeLists.txt"
+	Set-Location $fullprojectpath
+	
 	# create a ReadMe file for instructions
 	New-Item (Join-Path $fullprojectpath "ReadMe.md") -Type File
 
@@ -55,7 +65,7 @@ Function Main($currentPath) {
 	<#
 	New-Item (Join-Path $fullprojectpath "bin") -Type directory
 	New-Item (Join-Path $fullprojectpath "build") -Type directory
-	New-Item (Join-Path $fullprojectpath "src") -Type directory
+	
 	New-Item (Join-Path $fullprojectpath "include") -Type directory
 	New-Item (Join-Path $fullprojectpath "extern") -Type directory
 	New-Item (Join-Path $fullprojectpath "test") -Type directory
@@ -161,10 +171,12 @@ Function Populate-CMakeLists($cmakeListtop, $cmake_config){
 	Add-Content $cmakeListtop "# TOP CMAKELISTS FOR $($cmake_config.projectname)"
 	Add-Content $cmakeListtop "###############################################"
 	Add-Content $cmakeListtop "`n# basic setup of the project cmakelists.txt"
-	Add-Content $cmakeListtop "CMAKE_MINIMUM_REQUIRED (VERSION $($cmake_config.cmakeversion))"
+	Add-Content $cmakeListtop "CMAKE_MINIMUM_REQUIRED (VERSION $($cmake_config.cmakeversion) FATAL_ERROR)"
 	Add-Content $cmakeListtop "PROJECT ($($cmake_config.projectname))"
 	Add-Content $cmakeListtop "`n# add executable"
 	Add-Content $cmakeListtop "ADD_EXECUTABLE ($($cmake_config.projectname) """")"
+	Add-Content $cmakeListtop "`n# add source folder to build tree"
+	Add-Content $cmakeListtop "INCLUDE (src/CMakeLists.txt)"
 }
 
 # run the script by calling the main function
