@@ -33,29 +33,16 @@ Function Main($currentPath) {
 	Populate-CMakeLists $cmakeListtop $cmake_config
 	
 	# create directory for source code and modules
-	New-Item (Join-Path $fullprojectpath "src") -Type directory
-	Set-Location (Join-Path $fullprojectpath "src")
-		$cmakeListSrc = New-Item (Join-Path $fullprojectpath "src" | Join-Path -ChildPath "CMakeLists.txt")
-		Add-Content $cmakeListSrc "###############################################"
-		Add-Content $cmakeListSrc "# SRC CMAKELISTS FOR $($cmake_config.projectname)"
-		Add-Content $cmakeListSrc "###############################################" 
-		Add-Content $cmakeListSrc "# All modules are going to register in this CmakeLists.txt"
+	Setup-SrcDirectory $fullprojectpath
+	
 	Set-Location $fullprojectpath
 	
 	# create a ReadMe file for instructions
 	New-Item (Join-Path $fullprojectpath "ReadMe.md") -Type File
 
 	# create a LICENSE file (with at least the MIT license)
-	$licencefile = New-Item (Join-Path $fullprojectpath "LICENSE.txt") -Type File
-	$choice = New-Choice "yes","no" -Caption "Do you want a license for your project?"
-	if($choice -eq "yes") {
-		Invoke-Item $licencefile
-		Start-Process -FilePath https://choosealicense.com  
-	}
-	else {
-		$copyrightholder = Read-Host "Who is the copyright holder of your project?"
-		Print-MITLicense $licencefile $copyrightholder
-	}
+	Setup-License $fullprojectpath
+	
 	
 	# setup doxyfile for documentation and documentation directory
 	New-Item (Join-Path $fullprojectpath "Doxyfile") -Type File
@@ -92,7 +79,7 @@ Function checkDirectory($fullprojectpath) {
 }
 
 # simplify the choice prompts
-function New-Choice {
+Function New-Choice {
 <#
         .SYNOPSIS
                 The New-Choice function is used to provide extended control to a script author who writing code
@@ -141,10 +128,18 @@ process {
         }        
 }
 
-# print MIT-License to file
-Function Print-MITLicense($licencefile, $copyrightholder) {
-	$currentYear = (Get-Date).Year
-	$licencetext = 
+# decision of a license
+Function Setup-License($licensefile){
+$licensefile = New-Item (Join-Path $fullprojectpath "LICENSE.txt") -Type File
+	$choice = New-Choice "yes","no" -Caption "Do you want a license for your project?"
+	if($choice -eq "yes") {
+		Invoke-Item $licensefile
+		Start-Process -FilePath https://choosealicense.com  
+	}
+	else {
+		$copyrightholder = Read-Host "Who is the copyright holder of your project?"
+		$currentYear = (Get-Date).Year
+		$licensetext = 
 "Copyright $currentYear $copyrightholder
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
 associated documentation files (the ""Software""), to deal in the Software without restriction, 
@@ -162,7 +157,8 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
 	
-	$licencetext | Out-File $licencefile
+	$licensetext | Out-File $licensefile
+	}
 }
 
 # Populate CmakeLists.txt with some base content
@@ -178,6 +174,18 @@ Function Populate-CMakeLists($cmakeListtop, $cmake_config){
 	Add-Content $cmakeListtop "`n# add source folder to build tree"
 	Add-Content $cmakeListtop "INCLUDE (src/CMakeLists.txt)"
 }
+
+# Setup of source code directory
+Function Setup-SrcDirectory($fullprojectpath){
+	New-Item (Join-Path $fullprojectpath "src") -Type directory
+	Set-Location (Join-Path $fullprojectpath "src")
+	$cmakeListSrc = New-Item (Join-Path $fullprojectpath "src" | Join-Path -ChildPath "CMakeLists.txt")
+	Add-Content $cmakeListSrc "###############################################"
+	Add-Content $cmakeListSrc "# SRC CMAKELISTS FOR $($cmake_config.projectname)"
+	Add-Content $cmakeListSrc "###############################################" 
+	Add-Content $cmakeListSrc "# All modules are going to register in this CmakeLists.txt"
+}
+
 
 # run the script by calling the main function
 $script:currentPath = Split-Path -parent $MyInvocation.MyCommand.Definition
