@@ -41,18 +41,18 @@ Function Main($currentPath) {
 	New-Item (Join-Path $fullprojectpath "ReadMe.md") -Type File
 
 	# create a LICENSE file (with at least the MIT license)
-	Setup-License $fullprojectpath
+	Write-License $fullprojectpath
 	
 	
 	# setup doxyfile for documentation and documentation directory
 	New-Item (Join-Path $fullprojectpath "Doxyfile") -Type File
 	New-Item (Join-Path $fullprojectpath "doc") -Type directory
 	
-	# create directory structure for project
-	<#
-	New-Item (Join-Path $fullprojectpath "bin") -Type directory
-	New-Item (Join-Path $fullprojectpath "build") -Type directory
+	# create directory for binary files (out of src tree)
+	New-Item (Join-Path (Split-Path -Path $fullprojectpath -Parent) "$projectname-bin") -Type directory
 	
+	<#
+	New-Item (Join-Path $fullprojectpath "build") -Type directory
 	New-Item (Join-Path $fullprojectpath "include") -Type directory
 	New-Item (Join-Path $fullprojectpath "extern") -Type directory
 	New-Item (Join-Path $fullprojectpath "test") -Type directory
@@ -129,7 +129,7 @@ process {
 }
 
 # decision of a license
-Function Setup-License($licensefile){
+Function Write-License($licensefile){
 $licensefile = New-Item (Join-Path $fullprojectpath "LICENSE.txt") -Type File
 	$choice = New-Choice "yes","no" -Caption "Do you want a license for your project?"
 	if($choice -eq "yes") {
@@ -183,10 +183,10 @@ Function Setup-SrcDirectory($fullprojectpath){
 	Add-Content $cmakeListSrc "###############################################"
 	Add-Content $cmakeListSrc "# SRC CMAKELISTS FOR $($cmake_config.projectname)"
 	Add-Content $cmakeListSrc "###############################################" 
-	Add-Content $cmakeListSrc "# All modules are going to register in this CmakeLists.txt"
+	Add-Content $cmakeListSrc "# All modules are going to register in this CMakeLists.txt"
 }
 
-
+#########################################################################
 # run the script by calling the main function
 $script:currentPath = Split-Path -parent $MyInvocation.MyCommand.Definition
 Main($currentPath)
