@@ -25,13 +25,6 @@ Function Main($currentPath) {
 	} while(!$projectExist)
 	"The project name is ""$fullprojectpath""."
 	
-	# create project file set (CMakeLists.txt, ReadMe, License, Doxyfile
-	$cmakeListtop = New-Item (Join-Path $fullprojectpath "CMakeLists.txt") -Type File
-	## cmakeMinimumVersion
-	$cmake_config = @{"cmakeversion" = "3.1"}
-	$cmake_config.Set_Item("projectname",$projectname)
-	Populate-CMakeLists $cmakeListtop $cmake_config
-	
 	# create directory for source code and modules
 	Setup-SrcDirectory $fullprojectpath
 	
@@ -49,7 +42,15 @@ Function Main($currentPath) {
 	New-Item (Join-Path $fullprojectpath "doc") -Type directory
 	
 	# create directory for binary files (out of src tree)
-	New-Item (Join-Path (Split-Path -Path $fullprojectpath -Parent) "$projectname-bin") -Type directory
+	$installDir = New-Item (Join-Path (Split-Path -Path $fullprojectpath -Parent) "$projectname-bin") -Type directory
+	
+	# create project file set (CMakeLists.txt, ReadMe, License, Doxyfile
+	$cmakeListtop = New-Item (Join-Path $fullprojectpath "CMakeLists.txt") -Type File
+	## cmakeMinimumVersion
+	$cmake_config = @{"cmakeversion" = "3.1"}
+	$cmake_config.Set_Item("projectname",$projectname)
+	$cmake_config.Set_Item("installdir",$installDir)
+	Populate-CMakeLists $cmakeListtop $cmake_config
 	
 	<#
 	New-Item (Join-Path $fullprojectpath "build") -Type directory
@@ -169,9 +170,14 @@ Function Populate-CMakeLists($cmakeListtop, $cmake_config){
 	Add-Content $cmakeListtop "`n# basic setup of the project cmakelists.txt"
 	Add-Content $cmakeListtop "CMAKE_MINIMUM_REQUIRED (VERSION $($cmake_config.cmakeversion) FATAL_ERROR)"
 	Add-Content $cmakeListtop "PROJECT ($($cmake_config.projectname))"
-	Add-Content $cmakeListtop "`n# add executable"
+	Add-Content $cmakeListtop "`n`n# add further configurations"
+	Add-Content $cmakeListtop "SET(CMAKE_CXX_STANDARD 11)"
+	Add-Content $cmakeListtop "SET(CMAKE_CXX_STANDARD_REQUIRED ON)"
+	Add-Content $cmakeListtop "`n# add install target"
+	Add-Content $cmakeListtop "INSTALL(TARGETS $($cmake_config.projectname) DESTINATION $($cmake_config.installdir))"
+	Add-Content $cmakeListtop "`n`n# add executable"
 	Add-Content $cmakeListtop "ADD_EXECUTABLE ($($cmake_config.projectname) """")"
-	Add-Content $cmakeListtop "`n# add source folder to build tree"
+	Add-Content $cmakeListtop "`n`n# add source folder to build tree"
 	Add-Content $cmakeListtop "INCLUDE (src/CMakeLists.txt)"
 }
 

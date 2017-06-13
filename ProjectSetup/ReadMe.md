@@ -19,6 +19,7 @@ projectname<br>
       <li>src</li> 
         <ul>
         <li>CMakeLists.txt</li> 
+		<li>main.cpp</li> 
         <li>module1</li>
         <li>module2</li>
         </ul>
